@@ -20,13 +20,27 @@
   - 「跟随系统」随 Harness 主题实时切换
 - 模型切换后档位列表自动跟随；面板字体继承 Harness 全局字体
 
-## 安装（npm registry，推荐）
+## 安装
 
-```bash
+### 从 npm 安装（推荐）
+
+```sh
 dsh plugin --profile web add dsh-effort-slider
 ```
 
-安装后**重启 DSH web 服务**（宿主半边与客户端 bundle 均需重启注入）。
+### 从仓库安装（开发）
+
+```sh
+git clone https://github.com/Samlingthinker/dsh-effort-slider
+cd dsh-effort-slider
+dsh plugin --profile web add link:$(pwd)
+```
+
+Windows 上 link 目标用绝对路径：`dsh plugin --profile web add link:D:\path\to\dsh-effort-slider`
+
+重启 `dsh web` 后生效（宿主半边与客户端 bundle 均需重启注入）。
+
+### 卸载与禁用
 
 卸载：`dsh plugin --profile web remove dsh-effort-slider`
 禁用（保留包）：在 `~/.dsh/profiles/web/cordis.patch.yml` 写入
@@ -34,15 +48,6 @@ dsh plugin --profile web add dsh-effort-slider
 ```yaml
 - id: ui-effort-slider
   disabled: true
-```
-
-## 开发（从源码本地安装）
-
-```bash
-git clone https://github.com/<你的用户名>/dsh-effort-slider
-
-# 本地路径以 link 方式安装，改源码后重启即生效
-dsh plugin --profile web add D:\path\to\dsh-effort-slider
 ```
 
 ## 配置存储
