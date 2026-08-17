@@ -22,28 +22,44 @@
 
 ## 安装
 
+> **先选对 profile**：`dsh web`（浏览器 CLI）用 `web`；**DSH Desktop 桌面应用用 `desktop`**。
+> 装错 profile 时插件不会加载（`__DSH_BOOT__` 里搜不到条目、设置路由返回 SPA 页面而非 JSON）。
+> 不确定时先 `dsh plugin list --profile <名字>` 或查看 `~/.dsh/profiles/` 下有哪些目录。
+
 ### 从 npm 安装（推荐）
 
 ```sh
+# dsh web（浏览器 CLI）
 dsh plugin --profile web add dsh-effort-slider
+# DSH Desktop 桌面应用
+dsh plugin --profile desktop add dsh-effort-slider
 ```
+
+> **注意**：DSH 对当天刚发布的包有「最小发布时长」供应链策略（minimum release age），
+> 新版本发布后 24~48 小时内 `dsh plugin add` 可能解析到旧版甚至失败。
+> 出现这种情况时显式指定版本并临时放宽策略：
+> `dsh plugin --profile desktop add dsh-effort-slider@1.0.2 --config.minimumReleaseAge=0`
+> （策略名称与门控可能随 DSH 版本变化，`pnpm config get minimumReleaseAge` 可查看当前值。）
 
 ### 从仓库安装（开发）
 
 ```sh
 git clone https://github.com/Samlingthinker/dsh-effort-slider
 cd dsh-effort-slider
+# 桌面应用
+dsh plugin --profile desktop add link:$(pwd)
+# dsh web
 dsh plugin --profile web add link:$(pwd)
 ```
 
-Windows 上 link 目标用绝对路径：`dsh plugin --profile web add link:D:\path\to\dsh-effort-slider`
+Windows 上 link 目标用绝对路径：`dsh plugin --profile desktop add link:D:\path\to\dsh-effort-slider`
 
-重启 `dsh web` 后生效（宿主半边与客户端 bundle 均需重启注入）。
+重启 DSH Desktop / `dsh web` 后生效（宿主半边与客户端 bundle 均需重启注入）。
 
 ### 卸载与禁用
 
-卸载：`dsh plugin --profile web remove dsh-effort-slider`
-禁用（保留包）：在 `~/.dsh/profiles/web/cordis.patch.yml` 写入
+卸载：`dsh plugin --profile desktop remove dsh-effort-slider`（`web` profile 同理）
+禁用（保留包）：在对应 profile 的 `cordis.patch.yml` 写入
 
 ```yaml
 - id: ui-effort-slider
@@ -75,7 +91,7 @@ Windows 上 link 目标用绝对路径：`dsh plugin --profile web add link:D:\p
 
 ## 兼容性
 
-- 官方 DSH web profile（`npx @deepseek-ai/dsh web`），Windows / macOS / Linux
+- 官方 DSH Desktop 桌面应用（`desktop` profile）与 DSH web profile（`npx @deepseek-ai/dsh web`），Windows / macOS / Linux
 - 需要 WebGL2 支持（流光粒子）；不支持时滑块功能降级可用
 - 设置路由依赖宿主 webServer 服务（desktop/web profile 均内置）
 
