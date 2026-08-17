@@ -38,5 +38,13 @@
     "README.md",
     "LICENSE"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Samlingthinker/dsh-effort-slider.git"
+  },
+  "homepage": "https://github.com/Samlingthinker/dsh-effort-slider#readme",
+  "bugs": {
+    "url": "https://github.com/Samlingthinker/dsh-effort-slider/issues"
+  },
   "license": "BSD-3-Clause"
 }

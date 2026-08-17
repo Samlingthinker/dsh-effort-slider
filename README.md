@@ -4,7 +4,7 @@
 替换为 **Codex / Claude Code 风格连续滑块 + 流光粒子动效**（WebGL2），
 并在设置页提供独立分区「推理滑块」，可调 **浅色 / 深色 / 跟随系统** 外观。
 
-> 零外部依赖：克隆本仓库 → `dsh plugin add` → 重启，即可使用。
+> 零外部依赖：`dsh plugin add dsh-effort-slider` → 重启，即可使用。
 
 ## 特性
 
@@ -20,14 +20,10 @@
   - 「跟随系统」随 Harness 主题实时切换
 - 模型切换后档位列表自动跟随；面板字体继承 Harness 全局字体
 
-## 安装（web profile）
+## 安装（npm registry，推荐）
 
 ```bash
-# 1. 克隆仓库（或直接下载 zip 解压；地址取仓库页右上角 Code → HTTPS）
-git clone https://github.com/<你的用户名>/dsh-effort-slider
-
-# 2. 安装到 web profile（参数给仓库根目录）
-dsh plugin --profile web add D:\path\to\dsh-effort-slider
+dsh plugin --profile web add dsh-effort-slider
 ```
 
 安装后**重启 DSH web 服务**（宿主半边与客户端 bundle 均需重启注入）。
@@ -38,6 +34,15 @@ dsh plugin --profile web add D:\path\to\dsh-effort-slider
 ```yaml
 - id: ui-effort-slider
   disabled: true
+```
+
+## 开发（从源码本地安装）
+
+```bash
+git clone https://github.com/<你的用户名>/dsh-effort-slider
+
+# 本地路径以 link 方式安装，改源码后重启即生效
+dsh plugin --profile web add D:\path\to\dsh-effort-slider
 ```
 
 ## 配置存储

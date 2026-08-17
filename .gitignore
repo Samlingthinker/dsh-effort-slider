@@ -11,3 +11,6 @@ output/
 # editor
 .idea/
 .vscode/
+
+# npm publish token (never commit)
+.npmrc
