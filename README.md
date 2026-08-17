@@ -20,20 +20,20 @@
   - 「跟随系统」随 Harness 主题实时切换
 - 模型切换后档位列表自动跟随；面板字体继承 Harness 全局字体
 
-## 安装（desktop profile）
+## 安装（web profile）
 
 ```bash
 # 1. 克隆仓库（或直接下载 zip 解压；地址取仓库页右上角 Code → HTTPS）
 git clone https://github.com/<你的用户名>/dsh-effort-slider
 
-# 2. 安装到 desktop profile（参数给仓库根目录）
-dsh plugin --profile desktop add D:\path\to\dsh-effort-slider
+# 2. 安装到 web profile（参数给仓库根目录）
+dsh plugin --profile web add D:\path\to\dsh-effort-slider
 ```
 
-安装后**重启 DSH Desktop**（宿主半边与客户端 bundle 均需重启注入）。
+安装后**重启 DSH web 服务**（宿主半边与客户端 bundle 均需重启注入）。
 
-卸载：`dsh plugin --profile desktop remove dsh-effort-slider`
-禁用（保留包）：在 `~/.dsh/profiles/desktop/cordis.patch.yml` 写入
+卸载：`dsh plugin --profile web remove dsh-effort-slider`
+禁用（保留包）：在 `~/.dsh/profiles/web/cordis.patch.yml` 写入
 
 ```yaml
 - id: ui-effort-slider
@@ -65,7 +65,7 @@ dsh plugin --profile desktop add D:\path\to\dsh-effort-slider
 
 ## 兼容性
 
-- DSH Desktop（desktop profile），Windows / macOS / Linux
+- 官方 DSH web profile（`npx @deepseek-ai/dsh web`），Windows / macOS / Linux
 - 需要 WebGL2 支持（流光粒子）；不支持时滑块功能降级可用
 - 设置路由依赖宿主 webServer 服务（desktop/web profile 均内置）
 
