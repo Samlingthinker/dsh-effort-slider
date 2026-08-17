@@ -6,8 +6,6 @@
 
 > 零外部依赖：克隆本仓库 → `dsh plugin add` → 重启，即可使用。
 
-![preview](docs/preview.png)
-
 ## 特性
 
 - **连续滑块**：点输入框的模型选择器 → 菜单 → 点「推理等级」行，弹出 Codex 风格浮动卡片
@@ -59,16 +57,8 @@ dsh plugin --profile desktop add D:\path\to\dsh-effort-slider
 | `lib/index.js` | 宿主半边（零依赖）：`/_dsh/effort-slider/settings` GET/POST 同源路由 + JSON 持久化 + 旧版迁移 |
 | `lib/client.js` | 浏览器端：点击拦截 + EffortPanel + WebGL2 三pass 流光渲染 + 设置分区（外观三选） |
 | `cordis.patch.yml` | 注册 `ui-effort-slider` 宿主行 |
-| `docs/preview.html` | 预览图源文件（真实面板 CSS + 静态 mock） |
-| `smoke-test.mjs` | 客户端冒烟测试（模块加载 / apply / 拦截 / 外观读写回路） |
-| `host-check.mjs` | 宿主半边功能检查（临时 DSH_HOME 驱动路由 + 迁移测试） |
 
 ## 开发
-
-```bash
-node smoke-test.mjs   # 客户端回路
-node host-check.mjs   # 宿主路由 + 迁移
-```
 
 无构建步骤：`lib/` 即发布产物（客户端为 `window.__ModuleLoader__` bundle，
 由 DSH 宿主打包注入；宿主为普通 ESM，仅依赖 Node 内置模块）。
