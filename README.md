@@ -23,8 +23,8 @@
 ## 安装（desktop profile）
 
 ```bash
-# 1. 克隆仓库（或直接下载 zip 解压）
-git clone <your-repo-url> dsh-effort-slider
+# 1. 克隆仓库（或直接下载 zip 解压；地址取仓库页右上角 Code → HTTPS）
+git clone https://github.com/<你的用户名>/dsh-effort-slider
 
 # 2. 安装到 desktop profile（参数给仓库根目录）
 dsh plugin --profile desktop add D:\path\to\dsh-effort-slider
