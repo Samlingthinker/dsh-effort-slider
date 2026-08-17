@@ -1,0 +1,13 @@
+# dependencies / machine state
+node_modules/
+*.log
+.DS_Store
+
+# DSH workspace noise (session logs, vision toolkit cache, snapshots)
+.reasonix/
+.dsh-vision-toolkit/
+output/
+
+# editor
+.idea/
+.vscode/
