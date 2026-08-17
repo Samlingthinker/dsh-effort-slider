@@ -38,7 +38,7 @@ dsh plugin --profile desktop add dsh-effort-slider
 > **注意**：DSH 对当天刚发布的包有「最小发布时长」供应链策略（minimum release age），
 > 新版本发布后 24~48 小时内 `dsh plugin add` 可能解析到旧版甚至失败。
 > 出现这种情况时显式指定版本并临时放宽策略：
-> `dsh plugin --profile desktop add dsh-effort-slider@1.0.2 --config.minimumReleaseAge=0`
+> `dsh plugin --profile desktop add dsh-effort-slider@1.0.3 --config.minimumReleaseAge=0`
 > （策略名称与门控可能随 DSH 版本变化，`pnpm config get minimumReleaseAge` 可查看当前值。）
 
 ### 从仓库安装（开发）
@@ -94,6 +94,29 @@ Windows 上 link 目标用绝对路径：`dsh plugin --profile desktop add link:
 - 官方 DSH Desktop 桌面应用（`desktop` profile）与 DSH web profile（`npx @deepseek-ai/dsh web`），Windows / macOS / Linux
 - 需要 WebGL2 支持（流光粒子）；不支持时滑块功能降级可用
 - 设置路由依赖宿主 webServer 服务（desktop/web profile 均内置）
+
+## 变更记录
+
+### 1.0.3
+
+- **修复**：外观设置保存失败时按钮不再假选中，回滚原值并展示错误原因
+- **修复**：`expectedRevision` 未加载时的保存竞态（避免被宿主以 400 拒绝）
+- **修复**：`dsh.client.inject` 补齐 `dsh-client-connection` / `dsh-client-ui-settings` 依赖声明
+- **修复**：菜单拦截不再依赖硬编码整行文本，优先匹配官方 `cellLabel` 结构标签
+- **修复**：滑块松手后始终吸附到档位刻度（去重逻辑不再跳过 UI 吸附）
+- **修复**：流光回退到 Off 时等待弹簧收敛，尾光衰减不再被截断
+- **修复**：模型目录加载失败时展示具体错误，而非永远停在「加载中…」
+- **修复**：完整支持 `prefers-reduced-motion`（静态帧，不启动动画循环；含 MAX 渐变文字动画）
+- **修复**：滑块增加 `aria-label` / `aria-valuetext` 无障碍标注
+- **清理**：移除发布版中的调试日志
+
+### 1.0.2
+
+- 安装说明对齐社区格式（npm 安装 + 仓库安装两节）
+
+### 1.0.1
+
+- 安装说明改为 npm registry 优先，补充 repository 元数据
 
 ## 许可证
 

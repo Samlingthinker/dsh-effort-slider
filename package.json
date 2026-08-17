@@ -1,6 +1,6 @@
 {
   "name": "dsh-effort-slider",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "把 DSH 官方模型菜单里的「推理等级 / Effort」下拉替换为 Codex 风格连续滑块 + 流光粒子动效（WebGL2），并提供设置页独立分区（浅色 / 深色 / 跟随系统外观）。零依赖宿主半边，克隆后 dsh plugin add 即可用。",
   "keywords": [
     "deepseek",
