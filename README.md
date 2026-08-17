@@ -106,6 +106,11 @@ Windows 上 link 目标用绝对路径：`dsh plugin --profile desktop add link:
 
 ## 变更记录
 
+### 1.0.4
+
+- **文档**：供应链策略提示改为实测结论，说明 `minimumReleaseAgeExclude` 同包名多版本条目
+  的歧义问题（pnpm 只认第一条匹配规则），并给出推荐写法
+
 ### 1.0.3
 
 - **修复**：外观设置保存失败时按钮不再假选中，回滚原值并展示错误原因
