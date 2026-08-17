@@ -71,8 +71,14 @@ dsh plugin --profile desktop add D:\path\to\dsh-effort-slider
 
 ## 许可证
 
-[BSD-3-Clause](LICENSE)。面板结构与 WebGL 管线派生自
-[`@captain1275/dsh-client-ui-skin-aurora`](https://github.com/CAPTAIN1275/dsh-ui-web)（BSD-3-Clause）；
-High/MAX 像素场派生自
-[`DSH-Claude-Style-Reasoning-Slider`](https://github.com/MEMZ-JZY/DSH-Claude-Style-Reasoning-Slider)（MIT），
-详见 LICENSE 中的 Attribution。
+本项目代码以 [BSD-3-Clause](LICENSE) 发布。第三方派生部分按来源许可证声明：
+
+- **面板结构与 WebGL 流光渲染管线**派生自
+  [`@captain1275/dsh-client-ui-skin-aurora`](https://github.com/CAPTAIN1275/dsh-ui-web)
+  —— npm 包声明 BSD-3-Clause；源码仓库 LICENSE 为 Apache-2.0
+  （Copyright 2026 zhu1090093659 (linxin), CAPTAIN1275）。
+- **High/MAX 像素场**派生自
+  [`DSH-Claude-Style-Reasoning-Slider`](https://github.com/MEMZ-JZY/DSH-Claude-Style-Reasoning-Slider)
+  —— MIT（Copyright (c) 2026 MEMZ-鱼子酱）。
+
+完整第三方声明与许可证全文见 [LICENSE](LICENSE)。
