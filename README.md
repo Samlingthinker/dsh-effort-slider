@@ -35,11 +35,20 @@ dsh plugin --profile web add dsh-effort-slider
 dsh plugin --profile desktop add dsh-effort-slider
 ```
 
-> **注意**：DSH 对当天刚发布的包有「最小发布时长」供应链策略（minimum release age），
-> 新版本发布后 24~48 小时内 `dsh plugin add` 可能解析到旧版甚至失败。
-> 出现这种情况时显式指定版本并临时放宽策略：
-> `dsh plugin --profile desktop add dsh-effort-slider@1.0.3 --config.minimumReleaseAge=0`
-> （策略名称与门控可能随 DSH 版本变化，`pnpm config get minimumReleaseAge` 可查看当前值。）
+> **供应链策略提示**：pnpm 11 默认开启「最小发布时长」检查（`minimumReleaseAge` 默认 1440 分钟 ≈ 1 天），
+> 当天发布的包（含本插件新版本及 dshmarket 等依赖）在 24 小时内可能被拒绝安装。
+> 两种处理方式：
+> 1. 将包名加入 profile 的 `pnpm-workspace.yaml` 的 `minimumReleaseAgeExclude` 列表永久豁免
+>    （注意：同一包名只保留**一条**条目，多条精确版本条目时 pnpm 只认第一条，见下方示例）；
+> 2. 安装时临时放宽：`dsh plugin --profile desktop add dsh-effort-slider --config.minimumReleaseAge=0`
+>
+> 示例（`minimumReleaseAgeExclude` 中同包名合并为一条，避免版本歧义）：
+> ```yaml
+> minimumReleaseAgeExclude:
+>   - dshmarket          # 豁免所有版本（不要同时写 dshmarket@1.9.0 和 dshmarket@1.11.0 两条）
+>   - dsh-effort-slider
+> ```
+> 策略名称与门控可能随 pnpm/DSH 版本变化，`pnpm config get minimumReleaseAge` 可查看当前值。
 
 ### 从仓库安装（开发）
 
