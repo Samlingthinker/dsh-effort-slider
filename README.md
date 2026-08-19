@@ -107,6 +107,13 @@ Windows 上 link 目标用绝对路径：`dsh plugin --profile desktop add link:
 
 ## 变更记录
 
+### 1.0.5
+
+- **功能**：适配官方新增 `low` 档（rc.7 起推理档位为 Off / Low / High / Max 四档），
+  Low 成为首个像素档，轨道在 Low 及以上档位呈现动画像素场
+- **功能**：色板两段式连续过渡——Low 绿 → High 蓝 → MAX 紫，
+  Low→High 与 High→MAX 各按 smoothstep 平滑插值，拖动全程无硬切
+
 ### 1.0.4
 
 - **文档**：供应链策略提示改为实测结论，说明 `minimumReleaseAgeExclude` 同包名多版本条目
