@@ -26,7 +26,7 @@
 ## 安装
 
 > **先选对 profile**：`dsh web`（浏览器 CLI）用 `web`；**DSH Desktop 桌面应用用 `desktop`**。
-> 装错 profile 时插件不会加载（`__DSH_BOOT__` 里搜不到条目、设置路由返回 SPA 页面而非 JSON）。
+> 装错 profile 时插件不会加载（`__DSH_BOOT__` 里搜不到条目）。
 > 不确定时先 `dsh plugin list --profile <名字>` 或查看 `~/.dsh/profiles/` 下有哪些目录。
 
 ### 从 npm 安装（推荐）
@@ -104,8 +104,10 @@ Windows 上 link 目标用绝对路径：`dsh plugin --profile desktop add link:
   滑块面板经 `theme/change` 事件实时同步；不再提供插件自带的浅色 / 深色 / 跟随系统外观设置
   （避免两套外观设置的重复）
 - **修复**：跟随官方深色模式时面板正确切深色（此前 `system` 档恒走浅色的 bug 一并消除）
-- **清理**：移除设置分区、宿主 `/ _dsh/effort-slider/settings` 路由、`DSH_HOME/effort-slider.json`
+- **清理**：移除设置分区、宿主 `/_dsh/effort-slider/settings` 路由、`DSH_HOME/effort-slider.json`
   持久化与旧版迁移逻辑，以及相关 locale / CSS
+- **注意（行为变更）**：升级后插件不再提供自带的外观设置，面板配色只跟随官方 Harness 主题；
+  若你此前手动设置过插件配色，该设置将被忽略（以官方主题为准）
 
 ### 1.0.5
 
