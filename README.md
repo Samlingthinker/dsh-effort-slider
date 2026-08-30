@@ -1,8 +1,9 @@
 # dsh-effort-slider
 
 把 DSH（DeepSeek Harness）官方模型菜单里的「推理等级 / Effort」下拉单选列表，
-替换为 **Codex / Claude Code 风格连续滑块 + 流光粒子动效**（WebGL2），
-并在设置页提供独立分区「推理滑块」，可调 **浅色 / 深色 / 跟随系统** 外观。
+替换为 **Codex / Claude Code 风格连续滑块 + 流光粒子动效**（WebGL2）。
+面板配色**恒定跟随官方 Harness 主题**——官方「外观」切浅色/深色时，滑块面板实时跟随，
+无需单独设置外观（避免两套设置）。
 
 > 零外部依赖：`dsh plugin add dsh-effort-slider` → 重启，即可使用。
 
@@ -16,9 +17,10 @@
   - **像素场（Low / High / MAX）**：首个像素档（官方 4 档下为 Low）及以上轨道变为动画像素场
     （扫过式显现 + 流动闪烁），色板随档位两段式平滑过渡：Low **绿** → High **蓝** → MAX **紫**；
     另有流动多彩渐变文字与紫色渐变轨道底
-- **外观设置**：设置 → 「推理滑块」，浅色 / 深色 / 跟随系统 三选
-  - 深色下背景转深紫黑、轨道转深紫灰（紫系圆点/描边、screen 发光流光），浅薰衣草渐变滑块头
-  - 「跟随系统」随 Harness 主题实时切换
+- **跟随官方主题**：面板配色直接绑定官方 Harness 主题（`theme/change` 实时切换）
+  - 官方「外观」切浅色/深色时滑块面板同步切换；深色下背景转深紫黑、轨道转深紫灰
+    （紫系圆点/描边、screen 发光流光），浅薰衣草渐变滑块头
+  - 无需单独设置外观——不再提供浅色 / 深色 / 跟随系统三选，避免两套设置
 - 模型切换后档位列表自动跟随；面板字体继承 Harness 全局字体
 
 ## 安装
@@ -76,22 +78,12 @@ Windows 上 link 目标用绝对路径：`dsh plugin --profile desktop add link:
   disabled: true
 ```
 
-## 配置存储
-
-- 外观偏好存于 `DSH_HOME/effort-slider.json`（默认 `~/.dsh/effort-slider.json`），
-  与 `pet.json` 同模式，跟随用户主目录持久化。
-- 官方 `settings.mutate` RPC 只对白名单命名空间开放（`settings-not-exposed`），
-  第三方插件无法用 settingsScope 写自定义命名空间；因此本插件在宿主半边
-  零依赖挂载同源路由 `/_dsh/effort-slider/settings`，浏览器经该路由读写。
-- 升级自旧版（偏好曾存于 settings.yaml 的 `effort-slider` 命名空间）时，
-  首次运行会自动迁移到新 JSON 文件，无需手动处理。
-
 ## 结构
 
 | 文件 | 说明 |
 |---|---|
-| `lib/index.js` | 宿主半边（零依赖）：`/_dsh/effort-slider/settings` GET/POST 同源路由 + JSON 持久化 + 旧版迁移 |
-| `lib/client.js` | 浏览器端：点击拦截 + EffortPanel + WebGL2 三pass 流光渲染 + 设置分区（外观三选） |
+| `lib/index.js` | 宿主半边（零依赖）：空 `apply`，仅用于 `cordis.patch.yml` 注册 |
+| `lib/client.js` | 浏览器端：点击拦截 + EffortPanel + WebGL2 三pass 流光渲染；面板配色跟随官方主题 |
 | `cordis.patch.yml` | 注册 `ui-effort-slider` 宿主行 |
 
 ## 开发
@@ -103,9 +95,17 @@ Windows 上 link 目标用绝对路径：`dsh plugin --profile desktop add link:
 
 - 官方 DSH Desktop 桌面应用（`desktop` profile）与 DSH web profile（`npx @deepseek-ai/dsh web`），Windows / macOS / Linux
 - 需要 WebGL2 支持（流光粒子）；不支持时滑块功能降级可用
-- 设置路由依赖宿主 webServer 服务（desktop/web profile 均内置）
 
 ## 变更记录
+
+### 1.1.0
+
+- **行为**：面板配色改为**恒定跟随官方 Harness 主题**——官方「外观」切浅色/深色时，
+  滑块面板经 `theme/change` 事件实时同步；不再提供插件自带的浅色 / 深色 / 跟随系统外观设置
+  （避免两套外观设置的重复）
+- **修复**：跟随官方深色模式时面板正确切深色（此前 `system` 档恒走浅色的 bug 一并消除）
+- **清理**：移除设置分区、宿主 `/ _dsh/effort-slider/settings` 路由、`DSH_HOME/effort-slider.json`
+  持久化与旧版迁移逻辑，以及相关 locale / CSS
 
 ### 1.0.5
 
