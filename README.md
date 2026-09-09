@@ -85,18 +85,50 @@ Windows 上 link 目标用绝对路径：`dsh plugin --profile desktop add link:
 | `lib/index.js` | 宿主半边（零依赖）：空 `apply`，仅用于 `cordis.patch.yml` 注册 |
 | `lib/client.js` | 浏览器端：点击拦截 + EffortPanel + WebGL2 三pass 流光渲染；面板配色跟随官方主题 |
 | `cordis.patch.yml` | 注册 `ui-effort-slider` 宿主行 |
+| `scripts/check-compat.mjs` | 上游兼容性自检（零依赖，仅 npm + tar）；不随 npm 包发布 |
 
 ## 开发
 
 无构建步骤：`lib/` 即发布产物（客户端为 `window.__ModuleLoader__` bundle，
 由 DSH 宿主打包注入；宿主为普通 ESM，仅依赖 Node 内置模块）。
 
+### 上游兼容性自检
+
+插件依赖官方包的少量接口面：`theme/change` 事件 + `getTheme().active.colorScheme`
+（主题跟随）、`sessions.list` 快照（当前会话 id）、官方 `modelDirectories` 服务的
+`directoryFor` / `store` / `select`（模型目录与档位读写）、官方模型菜单的
+`menuitem` + `cellLabel` + 「推理等级」文案（点击拦截）。
+官方 DSH 发新版后，一条命令复查这些接口是否漂移：
+
+```sh
+npm run check:compat               # 各包自动取最新 rc 版本
+node scripts/check-compat.mjs 0.1.2-rc.1   # 四个包统一钉到指定版本（也可传 alpha 看开发线）
+```
+
+退出码非 0 即有标记缺失（接口漂移），需要人工核对 `lib/client.js` 对应逻辑。
+脚本零依赖（仅需 npm 与 tar，Windows 10 1803+ 自带），不随 npm 包发布。
+
 ## 兼容性
 
+- **插件 1.2.0 需要官方 DSH 0.1.2 及以上**（apiproxy 重构后的新接口面）；官方 0.1.1
+  及更早版本请使用插件 1.1.0（`connection.api.sessions` 旧接口面）
 - 官方 DSH Desktop 桌面应用（`desktop` profile）与 DSH web profile（`npx @deepseek-ai/dsh web`），Windows / macOS / Linux
 - 需要 WebGL2 支持（流光粒子）；不支持时滑块功能降级可用
 
 ## 变更记录
+
+### 1.2.0
+
+- **修复**：适配官方 DSH 0.1.2 重构（apiproxy 拆分为 api-gateway / api-remotes /
+  api-session-controller 等），插件在 0.1.2 线上完全失效的问题
+  - `dsh.client.inject` 引用的 `@deepseek-ai/dsh-client-runtime` 已被官方移除
+    （由 `@deepseek-ai/dsh-client-modules` 接替），导致插件模块图组装失败、整体不加载
+  - `connection.api.sessions.models / selectModel` 接口面已被官方拆除，
+    改用官方模型菜单同款 `modelDirectories` 服务（`directoryFor(sessionId)` +
+    `store` 读目录/当前档位 + `select()` 写档位），与官方模型席位共享同一份状态
+- **自检**：`scripts/check-compat.mjs` 检查面同步迁移到新接口
+  （`dsh-client-connection` / `dsh-host-apiproxy` 两项移除，新增
+  `dsh-api-session-controller` 与 `dsh-client-modules`）
 
 ### 1.1.0
 
