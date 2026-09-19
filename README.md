@@ -7,6 +7,12 @@
 
 > 零外部依赖：`dsh plugin add dsh-effort-slider` → 重启，即可使用。
 
+> **版本兼容**：v1.2.0 起走官方 `modelDirectories` 服务（官方模型菜单同款目录），
+> **实测兼容 DSH 0.1.5-rc.1**（2026-09-19，面板弹出/拖动写回/档位跟随全链路验证通过）。
+> 注意 npm 渠道可能滞后于本仓库——DSH 0.1.x 上装到 1.1.0（旧 `sessions.models` 通道，
+> 该 remote 在 0.1.5 已移除，表现为面板不弹、档位卡死）时，请改从 GitHub 安装：
+> `dsh plugin --profile web add github:Samlingthinker/dsh-effort-slider`
+
 ## 特性
 
 - **连续滑块**：点输入框的模型选择器 → 菜单 → 点「推理等级」行，弹出 Codex 风格浮动卡片
