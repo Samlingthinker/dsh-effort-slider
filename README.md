@@ -12,6 +12,10 @@
 > 注意 npm 渠道可能滞后于本仓库——DSH 0.1.x 上装到 1.1.0（旧 `sessions.models` 通道，
 > 该 remote 在 0.1.5 已移除，表现为面板不弹、档位卡死）时，请改从 GitHub 安装：
 > `dsh plugin --profile web add github:Samlingthinker/dsh-effort-slider`
+>
+> **v1.2.1（2026-09-19）实测兼容 DSH 0.1.7-rc.2**：0.1.7 移除了 `sessions.list`
+> 快照的 `current` 字段，当前会话 id 改从 `uiSession.current` 绑定快照的 `key`
+> 读取（注入新增 `uiSession`），旧版本自动回退原通道，无破坏性变更。
 
 ## 特性
 
