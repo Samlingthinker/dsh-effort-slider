@@ -85,6 +85,7 @@ Windows 上 link 目标用绝对路径：`dsh plugin --profile desktop add link:
 | `lib/index.js` | 宿主半边（零依赖）：空 `apply`，仅用于 `cordis.patch.yml` 注册 |
 | `lib/client.js` | 浏览器端：点击拦截 + EffortPanel + WebGL2 三pass 流光渲染；面板配色跟随官方主题 |
 | `cordis.patch.yml` | 注册 `ui-effort-slider` 宿主行 |
+| `scripts/test-client.mjs` | 客户端冒烟测试（`npm test`）：驱动发布产物，覆盖当前会话解析、点击拦截、EffortPanel 主体（渲染 / 写档位 / 异常路径）、发布面契约；不随 npm 包发布 |
 | `scripts/check-compat.mjs` | 上游兼容性自检（零依赖，仅 npm + tar）；不随 npm 包发布 |
 
 ## 开发
@@ -95,27 +96,64 @@ Windows 上 link 目标用绝对路径：`dsh plugin --profile desktop add link:
 ### 上游兼容性自检
 
 插件依赖官方包的少量接口面：`theme/change` 事件 + `getTheme().active.colorScheme`
-（主题跟随）、`sessions.list` 快照（当前会话 id）、官方 `modelDirectories` 服务的
+（主题跟随）、`sessions` 快照（当前会话 id）、官方 `modelDirectories` 服务的
 `directoryFor` / `store` / `select`（模型目录与档位读写）、官方模型菜单的
 `menuitem` + `cellLabel` + 「推理等级」文案（点击拦截）。
-官方 DSH 发新版后，一条命令复查这些接口是否漂移：
+官方 DSH 发新版后，两条命令复查：
 
 ```sh
+npm test                           # 客户端冒烟测试：驱动 lib/client.js（解析/拦截/面板主体/写档位/契约）
 npm run check:compat               # 各包自动取最新 rc 版本
-node scripts/check-compat.mjs 0.1.2-rc.1   # 四个包统一钉到指定版本（也可传 alpha 看开发线）
+node scripts/check-compat.mjs 0.1.7-rc.2   # 四个包统一钉到指定版本（也可传 alpha 看开发线）
+node scripts/check-compat.mjs --local "<DSH Desktop>\resources\app\node_modules\@deepseek-ai"
+                                   # 直接扫本机已安装的上游包（DSH Desktop 随包发布的那份），不走网络
 ```
 
-退出码非 0 即有标记缺失（接口漂移），需要人工核对 `lib/client.js` 对应逻辑。
-脚本零依赖（仅需 npm 与 tar，Windows 10 1803+ 自带），不随 npm 包发布。
+自检分两段：**插件侧接口面扫描**（`lib/client.js` 里是否还写着官方已删除的接口、
+是否缺当前版本必需的判定标记、`dsh.client.inject` 是否齐全）+ **上游包标记扫描**。
+上游标记一律取「形状锚点」而不是裸词（同一形状迁移时用 `expectOneOf` 给出两代备选）——
+例如 sessions 一项断言 `retainedBy` / `current: void 0` / `currentAddress`，
+因为裸词 `current` 在包里出现上百次，拿它当标记的检查永远不可能失败。
+退出码非 0 即有漂移。注意标记扫描只认字符串存在，语义变化要靠 `npm test` 的行为回归兜住——
+两者缺一不可。脚本零依赖（仅需 npm 与 tar，Windows 10 1803+ 自带），不随 npm 包发布。
 
 ## 兼容性
 
-- **插件 1.2.0 需要官方 DSH 0.1.2 及以上**（apiproxy 重构后的新接口面）；官方 0.1.1
-  及更早版本请使用插件 1.1.0（`connection.api.sessions` 旧接口面）
+- **插件 1.3.0 支持官方 DSH 0.1.2 → 0.1.7**（同一份 bundle 两代并存）：
+  - **0.1.6-alpha.2 起**（0.1.7-rc 线同样）「当前会话」改为官方主视图 retain 判定
+    （`sessions.list.byId[*].retainedBy.mainView > 0`），1.3.0 已适配
+  - 0.1.2–0.1.5 走旧的 `sessions.list` 快照 `current` 字段，仍可用
+  - 版本边界是实测的：`0.1.2-rc.1` / `0.1.5-rc.3` 的 lib 里还有 `current: void 0` 且没有
+    `retainedBy`；`0.1.6-alpha.2` / `0.1.7-rc.2` 正好相反
+- 官方 0.1.1 及更早版本请使用插件 1.1.0（`connection.api.sessions` 旧接口面）
 - 官方 DSH Desktop 桌面应用（`desktop` profile）与 DSH web profile（`npx @deepseek-ai/dsh web`），Windows / macOS / Linux
 - 需要 WebGL2 支持（流光粒子）；不支持时滑块功能降级可用
 
 ## 变更记录
+
+### 1.3.0
+
+- **修复**：适配官方 DSH 视图选择重构——「当前会话」不再来自 `sessions.list` 快照的
+  `current` 字段（**0.1.6-alpha.2 起**视图选择移出 sessions 控制器，0.1.7-rc 线同样），
+  改为「被主视图 retain 的会话」`list.byId[*].retainedBy.mainView > 0`，与官方 ui-layout /
+  ui-workspace / ui-session / ui-settings-general 同款判定。此前取不到会话 id 时点「推理等级」
+  行会静默不弹面板（0.1.6 开发线起即已失效，0.1.7 正式线暴露）
+- **兼容**：`currentSessionId()` 两代并存——`≤0.1.5` 读 `list.current`，
+  `0.1.6-alpha.2+` 走 retain 判定，一份 bundle 同时支持 0.1.2 → 0.1.7
+- **加固**：官方 `directoryFor()` 对未知会话（解析不到 scope/binding）直接抛出；
+  现在兜底显示「模型目录加载失败：会话未就绪」，不再让 React 卸载整棵面板
+- **修复**：`dsh.client.inject` 补回 `@deepseek-ai/dsh-api-session-controller`
+  （插件使用的 `sessions` 服务由它提供）
+- **自检**：`scripts/check-compat.mjs` 新增插件侧接口面扫描（残留已删除接口 / 缺必需标记 /
+  注入面缺失都会报错）与 `--local <包目录>` 模式（直接扫 DSH Desktop 随包发布的上游，不走网络）；
+  sessions 一项改为形状锚点三选一命中（`retainedBy` / `current: void 0` / `currentAddress`），
+  替换掉"裸词 `current` 永远命中"的假检查（已用合成漂移树验证它会 exit 1 报错）
+- **测试**：`scripts/test-client.mjs`（`npm test`，45 条断言）——直接加载发布产物
+  `lib/client.js`，用桩 hook 真实执行 `EffortPanel` 主体，覆盖两代快照形状的当前会话解析、
+  capture 阶段点击拦截、拖动写档位与松手吸附去重、目录未就绪/失败/`directoryFor` 抛出的兜底、
+  `theme/change` 重渲，以及 manifest 注入面与 `./client` 入口。四种「修复前写法」的变异
+  （回到 `getSnapshot().current`、去掉兜底、去掉松手吸附、改成冒泡阶段）分别被 20/3/1/1 条
+  断言抓住；核心用例在修复前即失败
 
 ### 1.2.0
 
