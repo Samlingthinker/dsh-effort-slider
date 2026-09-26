@@ -23,7 +23,7 @@
  *   node scripts/check-compat.mjs                          # 各包自动取最新 rc 版本
  *   node scripts/check-compat.mjs 0.1.7-rc.2               # 四个包统一钉到指定版本（也可传 alpha 看开发线）
  *   node scripts/check-compat.mjs --local <包目录>          # 直接扫本机已安装的上游包，不走网络
- *     # 例：--local "D:\Deepseek Harness Desktop\DSH Desktop\resources\app\node_modules\@deepseek-ai"
+ *     # 例：--local "<DSH Desktop 安装目录>\resources\app\node_modules\@deepseek-ai"
  *     #     （即 DSH Desktop 随包发布的 0.1.7-rc.2，比 npm 最新版更贴近真实运行环境）
  *
  * 退出码：0 = 全部通过；1 = 有接口漂移；2 = 自检本身没跑完（网络 / npm 不可达等）。

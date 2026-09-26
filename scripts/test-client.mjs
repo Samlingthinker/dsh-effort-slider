@@ -89,18 +89,46 @@ globalThis.document = {
 const rendered = [];
 /** useState 的 setter 调用记录（断言松手吸附用）。 */
 const hookWrites = { values: [] };
+/**
+ * 最小「保状态」React 桩：按调用顺序保存 hook 槽，跨 execPanel() 的多次"重渲"保持。
+ * 真实 React 的 useRef/useState 跨渲染保留，插件依赖这一点（例如目录的 last-good 缓存），
+ * 所以桩件也必须保留，否则这类用例会在桩里假失败/假通过。
+ */
+const hookState = { cursor: 0, slots: [] };
+const resetHookState = () => {
+	hookState.cursor = 0;
+	hookState.slots = [];
+};
 const reactStub = {
 	createElement: (type, props) => ({ type, props }),
-	useState: (init) => [
-		init,
-		(value) => {
-			hookWrites.values.push(value);
-		}
-	],
-	useRef: (init) => ({ current: init }),
-	useEffect: () => {},
-	useLayoutEffect: () => {},
-	useSyncExternalStore: (_subscribe, getSnapshot) => getSnapshot()
+	useState: (init) => {
+		const slot = hookState.cursor++;
+		if (hookState.slots[slot] === void 0) hookState.slots[slot] = { value: init };
+		const entry = hookState.slots[slot];
+		return [
+			entry.value,
+			(next) => {
+				hookWrites.values.push(next);
+				entry.value = typeof next === "function" ? next(entry.value) : next;
+			}
+		];
+	},
+	useRef: (init) => {
+		const slot = hookState.cursor++;
+		if (hookState.slots[slot] === void 0) hookState.slots[slot] = { current: init };
+		return hookState.slots[slot];
+	},
+	// 不执行副作用：桩件没有真实画布/DOM，副作用（WebGL、目录 load）不在本用例范围。
+	useEffect: () => {
+		hookState.cursor++;
+	},
+	useLayoutEffect: () => {
+		hookState.cursor++;
+	},
+	useSyncExternalStore: (_subscribe, getSnapshot) => {
+		hookState.cursor++;
+		return getSnapshot();
+	}
 };
 const reactDomStub = {
 	createRoot: () => ({
@@ -195,6 +223,7 @@ function fakeDirectory(overrides = {}) {
 	};
 	return {
 		selectCalls,
+		snapshot,
 		directory: {
 			store: { getSnapshot: () => snapshot, subscribe: () => () => {} },
 			load: () => Promise.resolve(snapshot),
@@ -211,6 +240,7 @@ function mount(services) {
 	rendered.length = 0;
 	listeners.length = 0;
 	hookWrites.values = [];
+	resetHookState();
 	const offs = [];
 	const handlers = new Map();
 	const ctx = {
@@ -255,6 +285,7 @@ function mount(services) {
 		execPanel: () => {
 			const element = rendered[rendered.length - 1];
 			if (element === void 0 || typeof element.type !== "function") return null;
+			hookState.cursor = 0; // 一次"渲染"从第一个 hook 开始；槽位跨渲染保留
 			return element.type(element.props);
 		}
 	};
@@ -270,6 +301,9 @@ function menuRow(labelText) {
 	target.closest = (selector) => (selector === 'button[role="menuitem"]' ? row : null);
 	return target;
 }
+
+/** 让在途写入与合并补发跑完（写入是异步的，断言前必须跑一次事件循环）。 */
+const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 /** 遍历桩 react 元素树。 */
 function walkElements(node, visit) {
@@ -385,6 +419,7 @@ console.log("\nEffortPanel 主体（目录就绪）");
 
 		fakeNow += 1000;
 		range.props.onBlur({ target: { value: String(100 / 3) } });
+		await settle();
 		check("松手写回吸附后的档位（low）", selectCalls.length === 2 && selectCalls[1].reasoningEffort === "low");
 		check(
 			"松手把滑块吸附到档位刻度",
@@ -392,8 +427,15 @@ console.log("\nEffortPanel 主体（目录就绪）");
 			JSON.stringify(hookWrites.values)
 		);
 		fakeNow += 10;
-		range.props.onBlur({ target: { value: "0" } });
-		check("50ms 内的重复 commit 被去重（不连写两次）", selectCalls.length === 2);
+		range.props.onBlur({ target: { value: String(100 / 3) } });
+		await settle();
+		check("同一档位重复 commit 被去重（pointerup + blur 不连写两次）", selectCalls.length === 2);
+		range.props.onBlur({ target: { value: "100" } });
+		await settle();
+		check(
+			"换档位后立即松手也会落地（不再被 50ms 时间窗吞掉）",
+			selectCalls.length === 3 && selectCalls[2].reasoningEffort === "max"
+		);
 	}
 }
 
@@ -495,7 +537,82 @@ console.log("\n官方主题切换（theme/change）");
 }
 //#endregion
 
-//#region 5. 回归对照
+//#region 5. 快速拖动性能 / 目录重载不中断（真实症状回归）
+console.log("\n快速拖动与目录重载");
+{
+	// 症状 A：16ms 节流在 60fps 拖动下形同虚设 —— 旧实现每帧写一次 host（实测 61 次/秒）。
+	// 期望：同档位去重 + 在途合并 + 降频后，1 秒拖动只落地个位数次写入。
+	const { directory, selectCalls } = fakeDirectory();
+	const { fire, execPanel } = mount({
+		sessions: sessionsWithMain(),
+		theme,
+		modelDirectories: { directoryFor: () => directory }
+	});
+	fire(menuRow("推理等级"));
+	const range = rangeOf(execPanel() ?? {});
+	check("快速拖动用例：滑块存在", range !== void 0);
+	if (range !== void 0) {
+		range.props.onPointerDown();
+		fakeNow += 1_000_000;
+		for (let frame = 0; frame < 60; frame++) {
+			fakeNow += 16; // 16.7ms 一帧：旧实现每帧都穿透 16ms 节流
+			range.props.onInput({ target: { value: String((frame / 59) * 100) } });
+		}
+		await settle();
+		fakeNow += 16;
+		range.props.onBlur({ target: { value: "100" } }); // 松手必定落地
+		await settle();
+		check(
+			"1 秒快速拖动的 host 写入 ≤ 3 次（旧实现每帧一次，实测 61 次）",
+			selectCalls.length <= 3,
+			`实际 ${selectCalls.length} 次`
+		);
+		check("拖动仍然实时写回（至少 1 次）", selectCalls.length >= 1, `实际 ${selectCalls.length} 次`);
+		check("最终落地的是松手所在的 max 档", selectCalls[selectCalls.length - 1]?.reasoningEffort === "max");
+	}
+}
+{
+	// 症状 B：上游刷新目录（catalog.invalidate → 目录状态变 loading）时，
+	// 旧实现会把滑块 disabled 并显示「模型目录加载中」，拖动当场被打断。
+	const { directory, snapshot, selectCalls } = fakeDirectory();
+	const { fire, execPanel } = mount({
+		sessions: sessionsWithMain(),
+		theme,
+		modelDirectories: { directoryFor: () => directory }
+	});
+	fire(menuRow("推理等级"));
+	let tree = execPanel();
+	const before = rangeOf(tree);
+	before.props.onPointerDown();
+	fakeNow += 16;
+	before.props.onInput({ target: { value: "40" } });
+	snapshot.status = "loading"; // 上游重载目录
+	tree = execPanel(); // 模拟 store 通知触发的重渲
+	const after = rangeOf(tree ?? {});
+	check("目录重载中不显示「模型目录加载中」", !panelText(tree ?? {}).includes("模型目录加载中"));
+	check("目录重载中滑块保持可用（拖动不被打断）", after?.props?.disabled === false);
+	if (after !== void 0) {
+		const writesBefore = selectCalls.length;
+		fakeNow += 1000;
+		after.props.onInput({ target: { value: "100" } });
+		await settle();
+		check("目录重载中仍能写回档位", selectCalls.length > writesBefore, `写入 ${selectCalls.length - writesBefore} 次`);
+	}
+}
+{
+	// 首次加载（从未成功过）必须仍然显示「加载中」，不能把真实加载态也吞掉。
+	const { directory } = fakeDirectory({ status: "loading", error: null, current: null, groups: [] });
+	const { fire, execPanel } = mount({
+		sessions: sessionsWithMain(),
+		theme,
+		modelDirectories: { directoryFor: () => directory }
+	});
+	fire(menuRow("推理等级"));
+	check("首次加载时仍显示「模型目录加载中」", panelText(execPanel() ?? {}).includes("模型目录加载中"));
+}
+//#endregion
+
+//#region 6. 回归对照
 console.log("\n回归对照");
 {
 	const { directory } = fakeDirectory();
@@ -514,7 +631,7 @@ console.log("\n回归对照");
 }
 //#endregion
 
-//#region 6. 其它兼容路径
+//#region 7. 其它兼容路径
 console.log("\n其它兼容路径");
 {
 	const { directory } = fakeDirectory();
@@ -538,7 +655,7 @@ console.log("\n其它兼容路径");
 
 console.warn = warn;
 
-//#region 7. 发布面契约
+//#region 8. 发布面契约
 console.log("\n发布面契约");
 check("inject 声明三项服务", JSON.stringify(bundle.inject) === JSON.stringify(["sessions", "theme", "modelDirectories"]));
 const source = readFileSync(bundlePath, "utf8");
