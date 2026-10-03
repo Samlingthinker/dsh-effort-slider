@@ -13,6 +13,12 @@
 > 该 remote 在 0.1.5 已移除，表现为面板不弹、档位卡死）时，请改从 GitHub 安装：
 > `dsh plugin --profile web add github:Samlingthinker/dsh-effort-slider`
 >
+> **v1.2.2（2026-10-03）适配 DSH 0.1.7+/0.2.0**：宿主半区新增**自动档位声明**——
+> llm-pi-ai 下任何缺 `reasoningEfforts` 的模型（网关同步、UI 手动添加、官方自定义路由，
+> 来源不限）自动补 low/medium/high，**新加模型即有推理滑块，无需手动声明**
+> （显式声明 `reasoningEfforts: false` 的尊重不动）。另有本地网关免费模型自动新增
+> （UI 删除自动记黑名单）。写入走 settings 用户层，热生效无需重启。
+>
 > **v1.2.1（2026-09-19）实测兼容 DSH 0.1.7-rc.2**：0.1.7 移除了 `sessions.list`
 > 快照的 `current` 字段，当前会话 id 改从 `uiSession.current` 绑定快照的 `key`
 > 读取（注入新增 `uiSession`），旧版本自动回退原通道，无破坏性变更。
